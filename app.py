@@ -3,6 +3,8 @@ from flask import Flask, request
 from dotenv import load_dotenv
 from google import genai
 import markdown
+import csv
+import io
 
 load_dotenv()
 
@@ -13,22 +15,29 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return """
-    <h1>Streaming Recommender</h1>
-    <form action="/recommend" method="post">
-        <p>Paste your watch history:</p>
-        <textarea name="history" rows="10" cols="50"></textarea>
-        <p>Mood (optional):</p>
-        <input type="text" name="mood">
-        <p>Obscurity (mainstream / mixed / obscure):</p>
-        <input type="text" name="obscurity">
-        <br><br>
-        <button type="submit">Get Recommendations</button>
-    </form>
-"""
+        <h1>Streaming Recommender</h1>
+        <form action="/recommend" method="post" enctype="multipart/form-data">
+            <p>Option 1 — Upload a watch history file (e.g. Netflix CSV):</p>
+            <input type="file" name="history_file">
+            <p>Option 2 — Or paste your watch history:</p>
+            <textarea name="history" rows="10" cols="50"></textarea>
+            <p>Mood (optional):</p>
+            <input type="text" name="mood">
+            <p>Obscurity (mainstream / mixed / obscure):</p>
+            <input type="text" name="obscurity">
+            <br><br>
+            <button type="submit">Get Recommendations</button>
+        </form>
+    """
 
 @app.route("/recommend", methods=["post"])
 def recommend():
-    history = request.form["history"]
+    uploaded_file = request.files.get("history_file")
+
+    if uploaded_file and uploaded_file.filename:
+        history = uploaded_file.read().decode("utf-8", errors="ignore")
+    else:
+        history = request.form["history"]
     mood = request.form["mood"]
     obscurity = request.form["obscurity"]
 
