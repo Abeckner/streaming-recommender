@@ -2,6 +2,7 @@ import os
 from flask import Flask, request
 from dotenv import load_dotenv
 from google import genai
+import markdown
 
 load_dotenv()
 
@@ -50,9 +51,11 @@ fits THEM specifically, tied to what you inferred about their taste.
             contents=prompt,
     )
 
+    recommendations_html = markdown.markdown(response.text)
+
     return f"""
-        <hi> Your Recommendations</h1>
-        <div style="white-space: pre-wrap; max-width: 600 px;">{response.text}</div>
+        <h1> Your Recommendations</h1>
+        <div style="max-width: 600px;">{recommendations_html}</div>
         <br>
         <a href="/"Go back</a>
     """
