@@ -25,6 +25,8 @@ def home():
             <input type="text" name="mood">
             <p>Obscurity (mainstream / mixed / obscure):</p>
             <input type="text" name="obscurity">
+            <p>Anything to keep in mind? (e.g. "ignore kids' and teen shows", "only movies", "skip reality TV")</p>
+            <textarea name="instructions" rows="3" cols="50"></textarea>
             <br><br>
             <button type="submit">Get Recommendations</button>
         </form>
@@ -35,12 +37,20 @@ def recommend():
     uploaded_file = request.files.get("history_file")
 
     if uploaded_file and uploaded_file.filename:
-        history = uploaded_file.read().decode("utf-8", errors="ignore")
+        raw_text = uploaded_file.read().decode("utf-8", errors="ignore")
+        reader = csv.reader(io.StringIO(raw_text))
+        titles = set()
+        next(reader, None)  # skip the header row
+        for row in reader:
+            if row:  # skip empty lines
+                base_title = row[0].split(":")[0].strip()
+                titles.add(base_title)
+        history = ", ".join(sorted(titles))
     else:
         history = request.form["history"]
     mood = request.form["mood"]
     obscurity = request.form["obscurity"]
-
+    instructions = request.form.get("instructions", "")
     prompt = f"""You are a thoughtful film and TV recommender.
     
 A user has given you their watch history:
@@ -48,6 +58,9 @@ A user has given you their watch history:
 
 Their current mood: {mood}
 Their obscurity preference: {obscurity}
+Special instructions from the user (follow these carefully): {instructions}
+
+Note: this watch history may contain shows watched by other people sharing the account. Use the user's special instructions to filter those out, and lean toward the taste that dominates unless told otherwise.
 
 First, infer the throughline of their taste - what actually connects 
 what they watch, beyond genre. Then recommend 5 titles they haven't 
@@ -55,12 +68,14 @@ listed. For each, give the title, year, and 2-3 sentences on why it
 fits THEM specifically, tied to what you inferred about their taste.
 """
 
-    response = client.models.generate_content(
+    try:
+        response = client.models.generate_content(
             model="gemini-3.6-flash",
             contents=prompt,
-    )
-
-    recommendations_html = markdown.markdown(response.text)
+        )
+        recommendations_html = markdown.markdown(response.text)
+    except Exception as e:
+        recommendations_html = f"<p>Something went wrong talking to the recommender. Try again in a moment.</p><p><em>{e}</em></p>"
 
     return f"""
         <h1> Your Recommendations</h1>
