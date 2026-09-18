@@ -116,7 +116,7 @@ fits THEM specifically, tied to what you inferred about their taste.
         # --- Claude Sonnet (current) ---
         message = claude.messages.create(
             model="claude-sonnet-5",
-            max_tokens=2000,
+            max_tokens=4000,
             messages=[{"role": "user", "content": prompt}],
         )
         recs_text = ""
