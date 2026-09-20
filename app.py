@@ -83,14 +83,16 @@ def home():
 
 @app.route("/recommend", methods=["post"])
 def recommend():
-    refinement = request.form.get("refinement", "").strip() 
+    session_id = get_session_id()
+    saved = load_conversation(session_id)
+
+    refinement = request.form.get("refinement", "").strip()
 
     if refinement:
-        # This is a follow-up turn - pull the saved context from the session
-        history = session.get("history", "")
+        history = saved["history"]
+        previous_recs = saved["previous_recs"]
         mood = session.get("mood", "")
         obscurity = session.get("obscurity", "")
-        previous_recs = session.get("previous_recs", "")
 
         prompt = f"""You are a thoughtful film and TV recommender.
 
@@ -104,9 +106,11 @@ Their obscurity preference: {obscurity}
 You have ALREADY recommended these titles - do NOT repeat any of them:
 {previous_recs}
 
+The user has ALREADY WATCHED everything in their history above - do NOT recommend anything already on that list.
+
 The user now says: "{refinement}"
 
-Give 5 NEW titles that respond to theior request and fit their taste.
+Give 5 NEW titles they have not watched and you have not already recommended, that respond to their request and fit their taste.
 For each: title, year, and 2-3 sentences on why it fits THEM specifically.
 """
     else:
@@ -145,8 +149,7 @@ what they watch, beyond genre. Then recommend 5 titles they haven't
 listed. For each, give the title, year, and 2-3 sentences on why it
 fits THEM specifically, tied to what you inferred about their taste.
 """
-        # Save context for future refinement turns
-        session["history"] = history
+        # Save small values in the session; big history goes to the DB below
         session["mood"] = mood
         session["obscurity"] = obscurity
 
@@ -171,14 +174,15 @@ fits THEM specifically, tied to what you inferred about their taste.
 
         recommendations_html = markdown.markdown(recs_text)
 
-        previous = session.get("previous_recs", "")
-        session["previous_recs"] = previous + "\n" + recs_text
+        previous = saved["previous_recs"]
+        new_previous_recs = previous + "\n" + recs_text
+        save_conversation(session_id, history, new_previous_recs)
     except Exception as e:
         return f"<p>Something went wrong. Try again in a moment.</p><p><em>{e}</em></p><a href='/'>Go back</a>"
 
     return f"""
         <h1> Your Recommendations</h1>
-        <div style="max-width: 600px;">{recommendations_html}</div>
+        <div style="max-width: 650px; margin: 0 auto; font-family: system-ui, sans-serif; line-height: 1.6;">{recommendations_html}</div>
         <hr style="max-width: 600px;">
         <form action="/recommend" method="post">
             <p>Seen these already? Want something different? Tell me how to adjust:</p>
