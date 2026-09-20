@@ -6,6 +6,8 @@ import markdown
 import csv
 import io
 import anthropic
+import sqlite3
+import uuid
 
 load_dotenv()
 
@@ -15,6 +17,49 @@ claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 app = Flask(__name__)
 
 app.secret_key = os.environ["FLASK_SECRET_KEY"]
+def init_db():
+    conn = sqlite3.connect("app.db") 
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS conversations ( 
+            session_id TEXT PRIMARY KEY,
+            history TEXT, 
+            previous_recs TEXT 
+        )
+    """)
+    conn.commit() 
+    conn.close() 
+
+init_db() 
+
+def get_session_id(): 
+    if "session_id" not in session:
+        session["session_id"] = str(uuid.uuid4()) 
+    return session["session_id"]
+
+def save_conversation(session_id, history, previous_recs): 
+    conn = sqlite3.connect("app.db") 
+    conn.execute(""" 
+        INSERT INTO conversations (session_id, history, previous_recs) 
+        VALUES (?, ?, ?) 
+        ON CONFLICT(session_id) DO UPDATE SET 
+            history = excluded.history, 
+            previous_recs = excluded.previous_recs 
+    """, (session_id, history, previous_recs)) 
+    conn.commit() 
+    conn.close()
+
+def load_conversation(session_id): 
+    conn = sqlite3.connect("app.db") 
+    cursor = conn.execute( 
+        "SELECT history, previous_recs FROM conversations WHERE session_id = ?", 
+        (session_id,)
+    ) 
+    row = cursor.fetchone() 
+    conn.close() 
+    if row: 
+        return {"history": row[0], "previous_recs": row[1]} 
+    else: 
+        return {"history": "", "previous_recs": ""} 
 
 @app.route("/")
 def home():
