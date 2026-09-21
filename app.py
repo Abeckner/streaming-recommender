@@ -92,13 +92,13 @@ def home():
             <br><br>
             <button type="submit">Get Recommendations</button>
         </form>
-            <div style="margin-top: 30px; text-align: center;">
-                <a href="https://ko-fi.com/aaronbeckner" target="_blank"
-                style="display: inline-block; padding: 10px 20px; background: #6f4e37;
-                        color: white; text-decoration: none; border-radius: 8px;
-                        font-family: system-ui, sans-serif; font-weight: 500;">
-                    ☕ Enjoying this? Buy me a coffee
-                </a>
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="https://ko-fi.com/aaronbeckner" target="_blank"
+               style="display: inline-block; padding: 10px 20px; background: #6f4e37;
+                      color: white; text-decoration: none; border-radius: 8px;
+                      font-family: system-ui, sans-serif; font-weight: 500;">
+                ☕ Enjoying this? Buy me a coffee
+            </a>
         </div>
     """
 
