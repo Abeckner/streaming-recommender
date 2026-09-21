@@ -67,8 +67,9 @@ def home():
         <h1>Streaming Recommender</h1>
         <form action="/recommend" method="post" enctype="multipart/form-data">
             <p>Option 1 — Upload a watch history file (e.g. Netflix CSV):</p>
+            <p style="font-size: 0.9em;">Need your Netflix history? <a href="https://www.netflix.com/viewingactivity" target="_blank">Get it here</a>, scroll down, click "Download all," then upload the file below.</p>
             <input type="file" name="history_file">
-            <p>Option 2 — Or paste your watch history:</p>
+            <p>Option 2 — Or type/paste your watch history:</p>
             <textarea name="history" rows="10" cols="50"></textarea>
             <p>Mood (optional):</p>
             <input type="text" name="mood">
@@ -79,6 +80,14 @@ def home():
             <br><br>
             <button type="submit">Get Recommendations</button>
         </form>
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="https://ko-fi.com/aaronbeckner" target="_blank"
+                style="display: inline-block; padding: 10px 20px; background: #6f4e37;
+                        color: white; text-decoration: none; border-radius: 8px;
+                        font-family: system-ui, sans-serif; font-weight: 500;">
+                    ☕ Enjoying this? Buy me a coffee
+                </a>
+        </div>
     """
 
 @app.route("/recommend", methods=["post"])
