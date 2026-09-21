@@ -1,3 +1,15 @@
+# Streaming Recommender
+#
+# A small Flask web app that recommends films and TV shows based on a user's
+# watch history. Users paste their history or upload a Netflix viewing-activity
+# CSV export, pick a mood and an obscurity preference, and optionally add
+# special instructions. The app sends this to Claude, which infers the
+# throughline of their taste and returns 5 tailored recommendations.
+#
+# Users can then refine the results with follow-up requests. Watch history and
+# previous recommendations are stored per session in SQLite (app.db) so
+# refinements build on earlier turns without repeating titles or suggesting
+# anything already watched.
 import os
 from flask import Flask, request, session
 from dotenv import load_dotenv
