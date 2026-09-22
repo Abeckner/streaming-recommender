@@ -72,9 +72,32 @@ def load_conversation(session_id):
     else:
         return {"history": "", "previous_recs": ""}
 
+KOFI_HTML = """
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="https://ko-fi.com/aaronbeckner" target="_blank"
+           style="display: inline-block; padding: 10px 20px; background: #6f4e37;
+                  color: white; text-decoration: none; border-radius: 8px;
+                  font-family: system-ui, sans-serif; font-weight: 500;">
+            ☕ Enjoying this? Buy me a coffee
+        </a>
+    </div>
+"""
+
+def page(content):
+    return f"""
+        <html>
+        <head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+        <body style="font-family: system-ui, sans-serif; line-height: 1.6; margin: 0;">
+            <div style="max-width: 700px; margin: 0 auto; padding: 24px;">
+                {content}
+            </div>
+        </body>
+        </html>
+    """
+
 @app.route("/")
 def home():
-    return """
+    return page(f"""
         <h1>Streaming Recommender</h1>
         <form action="/recommend" method="post" enctype="multipart/form-data">
             <p>Option 1 — Upload a watch history file (e.g. Netflix CSV):</p>
@@ -91,15 +114,8 @@ def home():
             <br><br>
             <button type="submit">Get Recommendations</button>
         </form>
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="https://ko-fi.com/aaronbeckner" target="_blank"
-               style="display: inline-block; padding: 10px 20px; background: #6f4e37;
-                      color: white; text-decoration: none; border-radius: 8px;
-                      font-family: system-ui, sans-serif; font-weight: 500;">
-                ☕ Enjoying this? Buy me a coffee
-            </a>
-        </div>
-    """
+        {KOFI_HTML}
+    """)
 
 @app.route("/recommend", methods=["post"])
 def recommend():
@@ -198,12 +214,12 @@ fits THEM specifically, tied to what you inferred about their taste.
         new_previous_recs = previous + "\n" + recs_text
         save_conversation(session_id, history, new_previous_recs)
     except Exception as e:
-        return f"<p>Something went wrong. Try again in a moment.</p><p><em>{e}</em></p><a href='/'>Go back</a>"
+        return page(f"<p>Something went wrong. Try again in a moment.</p><p><em>{e}</em></p><a href='/'>Go back</a>")
 
-    return f"""
-        <h1> Your Recommendations</h1>
-        <div style="max-width: 650px; margin: 0 auto; font-family: system-ui, sans-serif; line-height: 1.6;">{recommendations_html}</div>
-        <hr style="max-width: 600px;">
+    return page(f"""
+        <h1>Your Recommendations</h1>
+        <div>{recommendations_html}</div>
+        <hr>
         <form action="/recommend" method="post">
             <p>Seen these already? Want something different? Tell me how to adjust:</p>
             <textarea name="refinement" rows="3" cols="50"></textarea>
@@ -212,7 +228,8 @@ fits THEM specifically, tied to what you inferred about their taste.
         </form>
         <br>
         <a href="/">Start over</a>
-    """
+        {KOFI_HTML}
+    """)
 
 if __name__ == "__main__":
     app.run(debug=True)
