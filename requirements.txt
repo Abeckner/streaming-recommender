@@ -4,4 +4,4 @@ google-genai==2.23.0
 anthropic==1.6.0
 Markdown==3.10.3
 gunicorn==26.2.0
-psycopg[binary]==3.2.3
+psycopg[binary]==3.2.13
