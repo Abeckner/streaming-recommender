@@ -141,16 +141,45 @@ def home():
             <p>Option 2 — Or type/paste your watch history:</p>
             <textarea name="history" rows="10" cols="50"></textarea>
             <p>Mood (optional):</p>
-            <input type="text" name="mood">
-            <p>Obscurity (mainstream / mixed / obscure):</p>
-            <input type="text" name="obscurity">
+            <select name="mood" onchange="toggleOther(this, 'mood_other')">
+                <option value="">No preference</option>
+                <option>Cozy</option>
+                <option>Tense</option>
+                <option>Cerebral</option>
+                <option>Escapist</option>
+                <option>Lighthearted</option>
+                <option>Dark</option>
+                <option value="Other">Other…</option>
+            </select>
+            <input type="text" name="mood_other" id="mood_other" maxlength="{MOOD_CHAR_LIMIT}" style="display: none;">
+            <p>Obscurity:</p>
+            <select name="obscurity" onchange="toggleOther(this, 'obscurity_other')">
+                <option value="">No preference</option>
+                <option>Mainstream</option>
+                <option>Mixed</option>
+                <option>Obscure</option>
+                <option value="Other">Other…</option>
+            </select>
+            <input type="text" name="obscurity_other" id="obscurity_other" maxlength="{OBSCURITY_CHAR_LIMIT}" style="display: none;">
             <p>Anything to keep in mind? (e.g. "ignore kids' and teen shows", "only movies", "skip reality TV")</p>
             <textarea name="instructions" rows="3" cols="50"></textarea>
             <br><br>
             <button type="submit">Get Recommendations</button>
         </form>
+        <script>
+            function toggleOther(sel, id) {{
+                document.getElementById(id).style.display = sel.value === "Other" ? "inline-block" : "none";
+            }}
+        </script>
         {KOFI_HTML}
     """)
+
+def dropdown_or_other(field, limit):
+    """Read a dropdown field; if "Other" was chosen, use its free-text companion instead."""
+    value = request.form.get(field, "")
+    if value == "Other":
+        value = request.form.get(f"{field}_other", "")
+    return value.strip()[:limit]
 
 @app.route("/recommend", methods=["post"])
 def recommend():
@@ -206,8 +235,8 @@ For each: title, year, and 2-3 sentences on why it fits THEM specifically.
         else:
             history = request.form["history"][:HISTORY_CHAR_LIMIT]
 
-        mood = request.form["mood"][:MOOD_CHAR_LIMIT]
-        obscurity = request.form["obscurity"][:OBSCURITY_CHAR_LIMIT]
+        mood = dropdown_or_other("mood", MOOD_CHAR_LIMIT)
+        obscurity = dropdown_or_other("obscurity", OBSCURITY_CHAR_LIMIT)
         instructions = request.form.get("instructions", "")[:INSTRUCTIONS_CHAR_LIMIT]
 
         prompt = f"""<watch_history>
